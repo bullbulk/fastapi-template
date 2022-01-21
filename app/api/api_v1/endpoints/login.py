@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 from typing import Any
 
@@ -14,7 +15,8 @@ from app.core.config import settings
 
 router = APIRouter()
 
-# JUST FOR EXAMPLE, YOU CAN REMOVE ALL THIS SHIT
+
+# THIS IS NOT FOR EXAMPLE, YOU CANNOT REMOVE ALL THIS SHIT
 
 
 @router.post("/login/access-token", response_model=schemas.Token)
@@ -46,3 +48,14 @@ def test_token(current_user: models.User = Depends(deps.get_current_user)) -> An
     Test access token
     """
     return current_user
+
+
+@router.post("/login/update-token", response_model=schemas.Token)
+def update_token(*, current_user: models.User = Depends(deps.get_current_user)):
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return {
+        "access_token": security.create_access_token(
+            current_user.id, expires_delta=access_token_expires
+        ),
+        "token_type": "bearer",
+    }

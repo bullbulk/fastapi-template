@@ -3,27 +3,10 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app import crud
-from app import models
-from app import schemas
+from app import crud, models, schemas
 from app.api import deps
 
 router = APIRouter()
-
-# JUST FOR EXAMPLE, YOU CAN REMOVE ALL THIS SHIT
-
-
-@router.get("/check-api")
-def check_api(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Retrieve items.
-    """
-    return crud.item.get_multi(db)
 
 
 @router.get("/", response_model=List[schemas.Item])
