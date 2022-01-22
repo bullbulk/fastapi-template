@@ -4,7 +4,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:13
+    image: postgres:14
     command:
       - "postgres"
       - "-c"
@@ -75,8 +75,6 @@ services:
     volumes:
       - pgadmin:/var/lib/pgadmin
     depends_on:
-      - postgres
-    links:
       - postgres
 
   backend:

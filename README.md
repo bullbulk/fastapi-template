@@ -14,6 +14,12 @@ docker-compose up -d
 docker-compose up -d --build
 ```
 
+* After building there will remain old unused images, which take space on disk and in images list. To remove them, run:
+
+```bash
+docker image prune
+```
+
 Backend, JSON based web API based on OpenAPI: http://localhost:5555/api/
 
 Automatic interactive documentation with Swagger UI (from the OpenAPI backend): http://localhost:5555/docs
@@ -22,7 +28,7 @@ Alternative automatic documentation with ReDoc (from the OpenAPI backend): http:
 
 PostgreSQL external connect: http://localhost:5432
 
-PGAdmin, PostgreSQL web administration: http://localhost:5050 (not working for now)
+PGAdmin, PostgreSQL web administration: http://localhost:5050
 
 **Note**: The first time you start your stack, it might take a minute for it to be ready. While the backend waits for
 the database to be ready and configures everything. You can check the logs to monitor it.
@@ -38,6 +44,16 @@ To check the logs of a specific service, add the name of the service, e.g.:
 ```bash
 docker-compose logs backend
 ```
+
+## Access to pgAdmin
+
+* Open http://localhost:5050 in web browser and login as `admin@oaip.com` with password `qwerty` (you can edit
+  PGADMIN_DEFAULT_EMAIL and PGADMIN_DEFAULT_PASSWORD in .env)
+* Create new server: in `General` enter any name, go to `Connection` and set next options:
+    * Host name/address: `postgres`
+    * Port: `5432`
+    * Username: `postgres` (POSTGRES_USER)
+    * Password: `qwerty` (POSTGRES_PASSWORD)
 
 ## Backend local development, additional details
 
@@ -94,36 +110,3 @@ Automatic Interactive Docs (Swagger UI): https://localhost:5555/docs
 Automatic Alternative Docs (ReDoc): https://localhost:5555/redoc
 
 PGAdmin: http://localhost:5050
-
-## Project generation and updating, or re-generating
-
-This project was generated using https://github.com/tiangolo/full-stack-fastapi-postgresql with:
-
-```bash
-pip install cookiecutter
-cookiecutter https://github.com/tiangolo/full-stack-fastapi-postgresql
-```
-
-You can check the variables used during generation in the file `cookiecutter-config-file.yml`.
-
-You can generate the project again with the same configurations used the first time.
-
-That would be useful if, for example, the project generator (`tiangolo/full-stack-fastapi-postgresql`) was updated and
-you wanted to integrate or review the changes.
-
-You could generate a new project with the same configurations as this one in a parallel directory. And compare the
-differences between the two, without having to overwrite your current code but being able to use the same variables used
-for your current project.
-
-To achieve that, the generated project includes the file `cookiecutter-config-file.yml` with the current variables used.
-
-You can use that file while generating a new project to reuse all those variables.
-
-For example, run:
-
-```console
-$ cookiecutter --config-file ./cookiecutter-config-file.yml --output-dir ../project-copy https://github.com/tiangolo/full-stack-fastapi-postgresql
-```
-
-That will use the file `cookiecutter-config-file.yml` in the current directory (in this project) to generate a new
-project inside a sibling directory `project-copy`.
