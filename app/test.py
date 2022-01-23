@@ -1,11 +1,9 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from core.config import settings
 
-settings.API_V1_STR
 def test_create_item(
-    client: TestClient, superuser_token_headers: dict, db: Session
+        client: TestClient, superuser_token_headers: dict, db: Session
 ) -> None:
     data = {"title": "Foo", "description": "Fighters"}
     response = client.post(

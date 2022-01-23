@@ -12,11 +12,18 @@ class CRUDRefreshSession(CRUDBase[RefreshSession, RefreshSessionCreate, RefreshS
     def get_by_token(self, db: Session, *, token: str) -> Optional[RefreshSession]:
         return db.query(RefreshSession).filter(RefreshSession.refresh_token == token).first()
 
-    def get_active(self, db: Session, *, user_id: int, fingerprint: str) -> Optional[RefreshSession]:
+    def get_active(
+            self,
+            db: Session,
+            *,
+            user_id: int,
+            fingerprint: str
+    ) -> Optional[RefreshSession]:
         return (
-            db.query(RefreshSession).filter(RefreshSession.user_id == user_id,
-                                            RefreshSession.fingerprint == fingerprint)
-                .first()
+            db.query(RefreshSession).filter(
+                RefreshSession.user_id == user_id,
+                RefreshSession.fingerprint == fingerprint
+            ).first()
 
         )
 

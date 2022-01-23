@@ -11,7 +11,7 @@ class RefreshSessionBase(BaseModel):
     expires_delta: Optional[timedelta] = None
 
 
-# Properties to receive on session creation
+# Properties to validate on session creation
 class RefreshSessionCreate(RefreshSessionBase):
     fingerprint: Optional[str] = None
 

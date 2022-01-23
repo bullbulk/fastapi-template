@@ -27,12 +27,12 @@ def get_db() -> Generator:
 
 
 def get_current_user(
-        db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
+        *,
+        db: Session = Depends(get_db),
+        token: str = Depends(reusable_oauth2)
 ) -> models.User:
     try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
-        )
+        payload = security.jwt_decode(token)
         token_data = schemas.AccessTokenPayload(**payload)
     except (jwt.PyJWTError, ValidationError):
         raise HTTPException(
@@ -41,37 +41,21 @@ def get_current_user(
         )
     user = crud.user.get(db, id=token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-
-def get_refresh_session(
-        db: Session = Depends(get_db), *, fingerprint: str, refresh_token: str = Depends(reusable_oauth2),
-) -> models.User:
-    try:
-        payload = jwt.decode(
-            refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
-        )
-        token_data = schemas.RefreshTokenPayload(**payload)
-        if token_data.fingerprint != fingerprint:  # someone intercepted token, disabling session
-            crud.refresh_session.remove_by_token(refresh_token)
-            raise jwt.PyJWTError
-    except (jwt.PyJWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
         )
-    refresh_session = crud.refresh_session.get_by_token(db, token=refresh_token)
-    if not refresh_session:
-        raise HTTPException(status_code=404, detail="User not found")
-    return refresh_session
+    return user
 
 
 def get_current_active_user(
         current_user: models.User = Depends(get_current_user),
 ) -> models.User:
     if not crud.user.is_active(current_user):
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user"
+        )
     return current_user
 
 
@@ -80,6 +64,7 @@ def get_current_active_superuser(
 ) -> models.User:
     if not crud.user.is_superuser(current_user):
         raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges"
         )
     return current_user

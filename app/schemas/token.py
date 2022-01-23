@@ -10,7 +10,7 @@ class TokenPair(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: Optional[int] = None
-    grant_type: Literal["access", "refresh"] = None
+    grant_type: Literal["access", "refresh"]
 
 
 class AccessTokenPayload(TokenPayload):

@@ -1,24 +1,29 @@
-# oaip backend project
+# OAIP backend project
 
-# Built with [FastAPI Project Generator](https://github.com/tiangolo/full-stack-fastapi-postgresql)
+* Set .env variable SECRET_KEY. You can generate random string of 32 hex symbols by running (openssl can be found on
+  Windows in `C:\Program Files\Git\usr\bin`:
+
+  ```bash
+  openssl rand -hex 32
+  ```
 
 * Start the stack with Docker Compose:
 
-```bash
-docker-compose up -d
-```
+  ```bash
+  docker-compose up -d
+  ```
 
 * And for the further use (build after editing):
 
-```bash
-docker-compose up -d --build
-```
+  ```bash
+  docker-compose up -d --build
+  ```
 
 * After building there will remain old unused images, which take space on disk and in images list. To remove them, run:
 
-```bash
-docker image prune
-```
+  ```bash
+  docker image prune
+  ```
 
 Backend, JSON based web API based on OpenAPI: http://localhost:5555/api/
 

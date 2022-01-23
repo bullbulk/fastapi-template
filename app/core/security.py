@@ -3,13 +3,13 @@ from typing import Any, Optional
 from typing import Union, Dict
 
 import jwt
-from fastapi import Form
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
 from app import crud, schemas
+from app.api import deps
 from app.core.config import settings
-from app.db.session import SessionLocal
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -17,8 +17,12 @@ ALGORITHM = "HS256"
 
 
 def create_access_token(
-        subject: Union[str, Any], expires_delta: timedelta = None
+        subject: Union[str, Any],
+        expires_delta: timedelta = None,
+        extra_payload: Optional[dict] = None
 ) -> str:
+    if extra_payload is None:
+        extra_payload = {}
     now = datetime.utcnow()
     if expires_delta:
         expire = now + expires_delta
@@ -26,14 +30,18 @@ def create_access_token(
         expire = now + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    payload = {"exp": expire, "sub": str(subject), "grant_type": "access"}
-    encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    payload = {"exp": expire, "sub": str(subject), "grant_type": "access", **extra_payload}
+    encoded_jwt = jwt_encode(payload)
     return encoded_jwt
 
 
 def create_refresh_token(
-        subject: Union[str, Any], expires_delta: timedelta = None
+        subject: Union[str, Any],
+        expires_delta: timedelta = None,
+        extra_payload: Optional[dict] = None
 ) -> str:
+    if extra_payload is None:
+        extra_payload = {}
     now = datetime.utcnow()
     if expires_delta:
         expire = now + expires_delta
@@ -41,38 +49,48 @@ def create_refresh_token(
         expire = now + timedelta(
             minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
         )
-    payload = {"exp": expire, "sub": str(subject), "grant_type": "refresh"}
-    encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    payload = {"exp": expire, "sub": str(subject), "grant_type": "refresh", **extra_payload}
+    encoded_jwt = jwt_encode(payload)
     return encoded_jwt
 
 
 def write_new_refresh_session(
+        db: Session = Depends(deps.get_db),
+        *,
         refresh_token,
         user_id,
         fingerprint,
         refresh_expire_delta=timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES),
-):
-    db = SessionLocal()
-    refresh_session = schemas.RefreshSessionCreate()
-    refresh_session.refresh_token = refresh_token
-    refresh_session.expires_delta = refresh_expire_delta
-    refresh_session.user_id = user_id
-    refresh_session.fingerprint = fingerprint
+) -> None:
+    refresh_session = schemas.RefreshSessionCreate(
+        refresh_token=refresh_token,
+        expires_delta=refresh_expire_delta,
+        user_id=user_id,
+        fingerprint=fingerprint
+    )
     crud.refresh_session.create(
         db, obj_in=refresh_session
     )
-    db.close()
 
 
 def create_jwt_pair(
-        subject: Union[str, Any]
+        subject: Union[str, Any],
+        fingerprint: str
 ) -> Dict[str, str]:
     access_expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_expires_delta = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": create_access_token(subject, access_expires_delta),
-        "refresh_token": create_refresh_token(subject, refresh_expires_delta)
+        "refresh_token": create_refresh_token(subject, refresh_expires_delta, {"fingerprint": fingerprint})
     }
+
+
+def jwt_encode(payload: dict) -> str:
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def jwt_decode(subject: str) -> Dict[str, Any]:
+    return jwt.decode(subject, settings.SECRET_KEY, algorithms=[ALGORITHM])
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -81,18 +99,3 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
-
-
-class PasswordRequestForm(OAuth2PasswordRequestForm):
-    def __init__(self, grant_type: str = Form(None, regex="password"), username: str = Form(...),
-                 password: str = Form(...), fingerprint: str = Form(...), scope: str = Form(""),
-                 client_id: Optional[str] = Form(None),
-                 client_secret: Optional[str] = Form(None)):
-        super().__init__(grant_type, username, password, scope, client_id, client_secret)
-        self.fingerprint = fingerprint
-
-
-class SessionRequestForm:
-    def __init__(self, refresh_token: str = Form(...), fingerprint: str = Form(...)):
-        self.fingerprint = fingerprint
-        self.refresh_token = refresh_token

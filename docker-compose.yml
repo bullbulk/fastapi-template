@@ -35,8 +35,6 @@ services:
       - "pg_stat_statements.max=10000"
       - "-c"
       - "pg_stat_statements.track=all"
-    volumes:
-      - postgres:/var/lib/postgresql/data
     env_file:
       - .env
     environment:
@@ -46,51 +44,54 @@ services:
         limits:
           cpus: '1'
           memory: 4G
-    networks:
-      - postgres
+    restart: unless-stopped
+    volumes:
+      - postgres:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    networks:
+      - postgres
     ports:
       - "5432:5432"
 
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
-    networks:
-      - postgres
     env_file:
       - .env
+    depends_on:
+      - postgres
     deploy:
       resources:
         limits:
           cpus: '0.5'
           memory: 1G
     restart: unless-stopped
-    ports:
-      - "5050:80"
     volumes:
       - pgadmin:/var/lib/pgadmin
-    depends_on:
+    networks:
       - postgres
+    ports:
+      - "5050:80"
 
   backend:
     container_name: backend
     image: '${DOCKER_IMAGE_BACKEND}:${TAG-latest}'
-    depends_on:
-      - postgres
     env_file:
       - .env
+    depends_on:
+      - postgres
     build:
       context: .
       dockerfile: backend.dockerfile
-    ports:
-      - "5555:80"
+    restart: unless-stopped
     networks:
       - postgres
+    ports:
+      - "5555:80"
 
 volumes:
   postgres:
