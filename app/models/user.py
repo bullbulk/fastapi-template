@@ -1,12 +1,9 @@
-from typing import TYPE_CHECKING
+from datetime import datetime
 
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
-
-if TYPE_CHECKING:
-    from .item import Item  # noqa: F401
 
 
 class User(Base):
@@ -16,4 +13,5 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     items = relationship("Item", back_populates="owner")

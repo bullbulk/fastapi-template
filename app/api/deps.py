@@ -14,7 +14,7 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{settings.API_V1_STR}/login/"
 )
 
 
@@ -33,7 +33,7 @@ def get_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
-        token_data = schemas.TokenPayload(**payload)
+        token_data = schemas.AccessTokenPayload(**payload)
     except (jwt.PyJWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -43,6 +43,28 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+def get_refresh_session(
+        db: Session = Depends(get_db), *, fingerprint: str, refresh_token: str = Depends(reusable_oauth2),
+) -> models.User:
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = schemas.RefreshTokenPayload(**payload)
+        if token_data.fingerprint != fingerprint:  # someone intercepted token, disabling session
+            crud.refresh_session.remove_by_token(refresh_token)
+            raise jwt.PyJWTError
+    except (jwt.PyJWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    refresh_session = crud.refresh_session.get_by_token(db, token=refresh_token)
+    if not refresh_session:
+        raise HTTPException(status_code=404, detail="User not found")
+    return refresh_session
 
 
 def get_current_active_user(

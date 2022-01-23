@@ -9,22 +9,40 @@ import requests
 admin_data = {
     "password": "qwerty",
     "username": "admin@oaip.com",  # email in creating == username in getting token
+    "fingerprint": "some unique string"
 }
 
 # ****************************************** LOGIN GUIDE ******************************************
 
-# Get an access token for admin profile, which will expire in 8 days (config.py)
-# This token stores nowhere. Profile ID is included in token and encrypted
-response = requests.post("http://localhost:5555/api/v1/login/access-token", data=admin_data)
+# Get a pair of access and refresh token for admin profile.
+# Refresh expires after 60 days, access - 30 minutes (config.py)
+# Access token stores nowhere. Profile ID is included in both tokens and encrypted
+# Refresh token stores in database for the opportunity of disabling it in case of unauthorized access
+response = requests.post("http://localhost:5555/api/v1/login/", data=admin_data)
 
-# We need to save this token in memory, database, etc.
+# We need to save access token in memory
 # This is a key for all our user-specified API requests
-access_token = response.json()["access_token"]
+tokens = response.json()
 # Then use it as header like that
-headers = {"Authorization": f"Bearer {access_token}"}
-# In any time, we can test this token and decide what we need: use this validated token or login again
-# TODO: Add refresh token support
+headers = {"Authorization": f"Bearer {tokens['access_token']}"}
+# In any time, we can test this token and decide: use this active token or get new one
 requests.post(f"http://localhost:5555/api/v1/login/test-token", headers=headers)
+
+# Refreshing tokens: after expiring access token, we need to get new one using refresh token.
+# Refresh token is disposable and becomes useless after request
+refresh_data = {
+    "refresh_token": tokens["refresh_token"],
+    "fingerprint": "some_unique_string"
+}
+# Fingerprint is a unique identifier of device
+# The value of this parameter is the responsibility of the client
+# Available refresh token and fingerprint give full access to the account
+# So fingerprint must be a complex value: browser fingerprint, mobile device id, etc.
+response = requests.post("http://localhost:5555/api/v1/login/update-token", data=refresh_data)
+# We must store this token in database
+refresh_token = response.json()['refresh_token']
+# If refresh token is expired, we need to log in with username and password
+
 
 # *************************************** CRUD API GUIDE ***************************************
 

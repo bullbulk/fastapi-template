@@ -1,12 +1,22 @@
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import BaseModel
 
 
-class Token(BaseModel):
+class TokenPair(BaseModel):
     access_token: str
-    token_type: str
+    refresh_token: str
 
 
 class TokenPayload(BaseModel):
     sub: Optional[int] = None
+    grant_type: Literal["access", "refresh"] = None
+
+
+class AccessTokenPayload(TokenPayload):
+    grant_type: Literal["access"]
+
+
+class RefreshTokenPayload(TokenPayload):
+    grant_type: Literal["refresh"]
+    fingerprint: Optional[str] = None
