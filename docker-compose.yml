@@ -87,6 +87,8 @@ services:
     build:
       context: .
       dockerfile: backend.dockerfile
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-false}
     restart: unless-stopped
     networks:
       - postgres

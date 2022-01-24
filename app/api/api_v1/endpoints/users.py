@@ -18,13 +18,13 @@ def read_users(
         db: Session = Depends(deps.get_db),
         *,
         current_user: models.User = Depends(deps.get_current_active_superuser),
-        skip: int = 0,
+        offset: int = 0,
         limit: int = 100,
 ) -> Any:
     """
     Retrieve users. Only for superusers.
     """
-    users = crud.user.get_multi(db, skip=skip, limit=limit)
+    users = crud.user.get_multi(db, offset=offset, limit=limit)
     return users
 
 

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "oaip"
+version = "0.1.0"
+description = ""
+authors = ["bullbulk <grur.ura@mail.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+SQLAlchemy = "^1.4.29"
+fastapi = "^0.72.0"
+starlette = "^0.17.1"
+psycopg2 = "^2.9.3"
+PyJWT = "^2.3.0"
+pydantic = { extras = ["email"], version = "^1.9.0" }
+passlib = "^1.7.4"
+tenacity = "^8.0.1"
+requests = "^2.27.1"
+python-multipart = "^0.0.5"
+uvicorn = "^0.17.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -15,17 +15,17 @@ def read_items(
         db: Session = Depends(deps.get_db),
         *,
         current_user: models.User = Depends(deps.get_current_active_user),
-        skip: int = 0,
+        offset: int = 0,
         limit: int = 100,
 ) -> Any:
     """
     Retrieve items.
     """
     if crud.user.is_superuser(current_user):
-        items = crud.item.get_multi(db, skip=skip, limit=limit)
+        items = crud.item.get_multi(db, offset=offset, limit=limit)
     else:
         items = crud.item.get_multi_by_owner(
-            db=db, owner_id=current_user.id, skip=skip, limit=limit
+            db=db, owner_id=current_user.id, offset=offset, limit=limit
         )
     return items
 
