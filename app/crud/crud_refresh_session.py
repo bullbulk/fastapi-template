@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -9,25 +8,26 @@ from app.schemas.refresh_session import RefreshSessionCreate, RefreshSessionsUpd
 
 
 class CRUDRefreshSession(CRUDBase[RefreshSession, RefreshSessionCreate, RefreshSessionsUpdate]):
-    def get_by_token(self, db: Session, *, token: str) -> Optional[RefreshSession]:
+    @staticmethod
+    def get_by_token(db: Session, *, token: str) -> RefreshSession | None:
         return db.query(RefreshSession).filter(RefreshSession.refresh_token == token).first()
 
+    @staticmethod
     def get_active(
-            self,
             db: Session,
             *,
             user_id: int,
             fingerprint: str
-    ) -> Optional[RefreshSession]:
+    ) -> RefreshSession | None:
         return (
             db.query(RefreshSession).filter(
                 RefreshSession.user_id == user_id,
                 RefreshSession.fingerprint == fingerprint
             ).first()
-
         )
 
     def create(self, db: Session, *, obj_in: RefreshSessionCreate) -> RefreshSession:
+        # noinspection PyArgumentList
         db_obj = RefreshSession(
             user_id=obj_in.user_id,
             refresh_token=obj_in.refresh_token,
@@ -39,7 +39,7 @@ class CRUDRefreshSession(CRUDBase[RefreshSession, RefreshSessionCreate, RefreshS
         db.refresh(db_obj)
         return db_obj
 
-    def remove_by_token(self, db: Session, *, token: str) -> Optional[RefreshSession]:
+    def remove_by_token(self, db: Session, *, token: str) -> RefreshSession | None:
         obj = self.get_by_token(db, token=token)
         return self.remove(db, id=obj.id)
 

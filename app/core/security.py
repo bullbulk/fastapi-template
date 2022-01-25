@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Optional
-from typing import Union, Dict
+from typing import Any
 
 import jwt
 from fastapi import Depends
@@ -17,9 +16,9 @@ ALGORITHM = "HS256"
 
 
 def create_access_token(
-        subject: Union[str, Any],
+        subject: str | Any,
         expires_delta: timedelta = None,
-        extra_payload: Optional[dict] = None
+        extra_payload: dict | None = None
 ) -> str:
     if extra_payload is None:
         extra_payload = {}
@@ -36,9 +35,9 @@ def create_access_token(
 
 
 def create_refresh_token(
-        subject: Union[str, Any],
+        subject: str | Any,
         expires_delta: timedelta = None,
-        extra_payload: Optional[dict] = None
+        extra_payload: dict | None = None
 ) -> str:
     if extra_payload is None:
         extra_payload = {}
@@ -74,9 +73,9 @@ def write_new_refresh_session(
 
 
 def create_jwt_pair(
-        subject: Union[str, Any],
+        subject: str | Any,
         fingerprint: str
-) -> Dict[str, str]:
+) -> dict[str, str]:
     access_expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_expires_delta = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     return {
@@ -89,7 +88,7 @@ def jwt_encode(payload: dict) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def jwt_decode(subject: str) -> Dict[str, Any]:
+def jwt_decode(subject: str) -> dict[str, Any]:
     return jwt.decode(subject, settings.SECRET_KEY, algorithms=[ALGORITHM])
 
 

@@ -1,19 +1,18 @@
 from datetime import timedelta
-from typing import Optional
 
 from pydantic import BaseModel
 
 
 # Shared properties
 class RefreshSessionBase(BaseModel):
-    user_id: Optional[int] = None
-    refresh_token: Optional[str] = None
-    expires_delta: Optional[timedelta] = None
+    user_id: int | None = None
+    refresh_token: str | None = None
+    expires_delta: timedelta | None = None
 
 
 # Properties to validate on session creation
 class RefreshSessionCreate(RefreshSessionBase):
-    fingerprint: Optional[str] = None
+    fingerprint: str | None = None
 
 
 class RefreshSessionsUpdate(RefreshSessionBase):
@@ -31,4 +30,4 @@ class RefreshSessionInDBBase(RefreshSessionBase):
 
 # Properties stored in DB
 class RefreshSessionInDB(RefreshSessionInDBBase):
-    refresh_token: Optional[str] = None
+    refresh_token: str | None = None

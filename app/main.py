@@ -9,7 +9,7 @@ backend_pre_start.init()
 initial_data.init()
 
 app = FastAPI(
-    title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title=settings.PROJECT_NAME, openapi_url=f"{settings.CURRENT_API_STR}/openapi.json"
 )
 
 # Set all CORS enabled origins
@@ -22,4 +22,4 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix=settings.CURRENT_API_STR)

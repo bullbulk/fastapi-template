@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -10,7 +10,7 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Item])
+@router.get("/", response_model=list[schemas.Item])
 def read_items(
         db: Session = Depends(deps.get_db),
         *,
@@ -44,6 +44,7 @@ def create_item(
     return item
 
 
+# noinspection PyShadowingBuiltins
 @router.put("/{id}", response_model=schemas.Item)
 def update_item(
         db: Session = Depends(deps.get_db),
@@ -70,6 +71,7 @@ def update_item(
     return item
 
 
+# noinspection PyShadowingBuiltins
 @router.get("/{id}", response_model=schemas.Item)
 def read_item(
         db: Session = Depends(deps.get_db),
@@ -94,6 +96,7 @@ def read_item(
     return item
 
 
+# noinspection PyShadowingBuiltins
 @router.delete("/{id}", response_model=schemas.Item)
 def delete_item(
         db: Session = Depends(deps.get_db),

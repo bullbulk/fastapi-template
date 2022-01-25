@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -13,11 +13,12 @@ from app.core.config import settings
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.User])
+# noinspection PyUnusedLocal
+@router.get("/", response_model=list[schemas.User])
 def read_users(
         db: Session = Depends(deps.get_db),
         *,
-        current_user: models.User = Depends(deps.get_current_active_superuser),
+        current_user: models.User = Depends(deps.get_current_active_superuser),  # Necessary for credentials validation
         offset: int = 0,
         limit: int = 100,
 ) -> Any:
@@ -28,11 +29,12 @@ def read_users(
     return users
 
 
+# noinspection PyUnusedLocal
 @router.post("/", response_model=schemas.User)
 def create_user(
         db: Session = Depends(deps.get_db),
         *,
-        current_user: models.User = Depends(deps.get_current_active_superuser),
+        current_user: models.User = Depends(deps.get_current_active_superuser),  # Necessary for credentials validation
         user_in: schemas.UserCreate,
 ) -> Any:
     """
@@ -131,11 +133,12 @@ def read_user_by_id(
     return user
 
 
+# noinspection PyUnusedLocal
 @router.put("/{user_id}", response_model=schemas.User)
 def update_user(
         db: Session = Depends(deps.get_db),
         *,
-        current_user: models.User = Depends(deps.get_current_active_superuser),
+        current_user: models.User = Depends(deps.get_current_active_superuser),  # Necessary for credentials validation
         user_id: int,
         user_in: schemas.UserUpdate,
 ) -> Any:

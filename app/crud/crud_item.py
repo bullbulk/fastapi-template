@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
@@ -17,12 +15,14 @@ class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
             owner_id: int
     ) -> Item:
         obj_in_data = jsonable_encoder(obj_in)
+        # noinspection PyArgumentList
         db_obj = self.model(**obj_in_data, owner_id=owner_id)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
 
+    # noinspection PyPep8
     def get_multi_by_owner(
             self,
             db: Session,
@@ -30,7 +30,7 @@ class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
             owner_id: int,
             offset: int = 0,
             limit: int = 100
-    ) -> List[Item]:
+    ) -> list[Item]:
         return (
             db.query(self.model)
                 .filter(Item.owner_id == owner_id)

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import Form
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -12,8 +10,8 @@ class PasswordRequestForm(OAuth2PasswordRequestForm):
             password: str = Form(...),
             fingerprint: str = Form(...),
             scope: str = Form(""),
-            client_id: Optional[str] = Form(None),
-            client_secret: Optional[str] = Form(None)
+            client_id: str | None = Form(None),
+            client_secret: str | None = Form(None)
     ):
         super().__init__(grant_type, username, password, scope, client_id, client_secret)
         self.fingerprint = fingerprint

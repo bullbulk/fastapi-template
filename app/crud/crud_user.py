@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -9,10 +9,12 @@ from app.schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
+    @staticmethod
+    def get_by_email(db: Session, *, email: str) -> User | None:
         return db.query(User).filter(User.email == email).first()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
+        # noinspection PyArgumentList
         db_obj = User(
             email=obj_in.email,
             hashed_password=get_password_hash(obj_in.password),
@@ -29,7 +31,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             db: Session,
             *,
             db_obj: User,
-            obj_in: Union[UserUpdate, Dict[str, Any]]
+            obj_in: UserUpdate | dict[str, Any]
     ) -> User:
         if isinstance(obj_in, dict):
             update_data = obj_in
@@ -43,19 +45,21 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def authenticate(
             self, db: Session, *, email: str, password: str
-    ) -> Optional[User]:
-        user = self.get_by_email(db, email=email)
-        if not user:
+    ) -> User | None:
+        db_obj = self.get_by_email(db, email=email)
+        if not db_obj:
             return None
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, db_obj.hashed_password):
             return None
-        return user
+        return db_obj
 
-    def is_active(self, user: User) -> bool:
-        return user.is_active
+    @staticmethod
+    def is_active(db_obj: User) -> bool:
+        return db_obj.is_active
 
-    def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
+    @staticmethod
+    def is_superuser(db_obj: User) -> bool:
+        return db_obj.is_superuser
 
 
 user = CRUDUser(User)
