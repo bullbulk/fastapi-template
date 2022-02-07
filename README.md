@@ -57,7 +57,7 @@ docker-compose logs backend
 * Create new server: in `General` enter any name, go to `Connection` and set next options:
     * Host name/address: `postgres`
     * Port: `5432`
-    * Username: `postgres` (POSTGRES_USER)
+    * Username: `admin` (POSTGRES_USER)
     * Password: `qwerty` (POSTGRES_PASSWORD)
 
 ## Backend local development, additional details

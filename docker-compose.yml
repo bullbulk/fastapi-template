@@ -3,7 +3,6 @@ version: "3.8"
 services:
 
   postgres:
-    container_name: postgres
     image: postgres:14
     command:
       - "postgres"
@@ -58,7 +57,6 @@ services:
       - "5432:5432"
 
   pgadmin:
-    container_name: pgadmin
     image: dpage/pgadmin4
     env_file:
       - .env
@@ -78,14 +76,13 @@ services:
       - "5050:80"
 
   backend:
-    container_name: backend
     image: '${DOCKER_IMAGE_BACKEND}:${TAG-latest}'
     env_file:
       - .env
     depends_on:
       - postgres
     build:
-      context: .
+      context: ./backend
       dockerfile: backend.dockerfile
       args:
         INSTALL_DEV: ${INSTALL_DEV-false}

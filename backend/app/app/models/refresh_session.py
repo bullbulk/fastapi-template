@@ -7,6 +7,8 @@ from app.db.base_class import Base
 
 
 class RefreshSession(Base):
+    __tablename__ = "refresh_session"
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id"))
     refresh_token = Column(String, unique=True, index=True, nullable=False)

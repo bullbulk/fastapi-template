@@ -96,6 +96,3 @@ venv/
 */*.swp
 */*/*.swp
 */*/*/*.swp
-
-# Specific project files
-api_guide.py

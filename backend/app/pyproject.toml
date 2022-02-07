@@ -6,16 +6,17 @@ authors = ["bullbulk <grur.ura@mail.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-SQLAlchemy = "^1.4.29"
+alembic = "^1.7.6"
 fastapi = "^0.72.0"
-starlette = "^0.17.1"
+passlib = "^1.7.4"
 psycopg2 = "^2.9.3"
 PyJWT = "^2.3.0"
 pydantic = { extras = ["email"], version = "^1.9.0" }
-passlib = "^1.7.4"
-tenacity = "^8.0.1"
-requests = "^2.27.1"
 python-multipart = "^0.0.5"
+requests = "^2.27.1"
+SQLAlchemy = "^1.4.29"
+starlette = "^0.17.1"
+tenacity = "^8.0.1"
 uvicorn = "^0.17.0"
 
 [tool.poetry.dev-dependencies]

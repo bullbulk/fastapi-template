@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /app
+WORKDIR /app/
 
 # Install Poetry
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python && \
@@ -9,16 +9,21 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
     poetry config virtualenvs.create false
 
 # Copy poetry.lock* in case it doesn't exist in the repo
-COPY ./pyproject.toml ./app/poetry.lock* /app/
+COPY ./app/pyproject.toml ./app/poetry.lock* /app/
 
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
+RUN bash -c " \
+    if [ $INSTALL_DEV == 'true' ] ; \
+    then poetry install --no-root ;  \
+    else poetry install --no-root --no-dev ;  \
+    fi \
+    "
 
-COPY . /app/
+COPY ./app /app
 
-RUN chmod +x /app/prestart.sh
+RUN chmod +x /app/scripts/start.sh
 
-CMD ["/app/prestart"]
+ENV PYTHONPATH=/app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["/app/scripts/start.sh"]
