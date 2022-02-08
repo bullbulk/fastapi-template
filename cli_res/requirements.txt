@@ -1,0 +1,5 @@
+appdirs~=1.4.4
+checksumdir~=1.2.0
+click~=8.0.3
+lightdb~=1.1.2
+python-on-whales~=0.36.1

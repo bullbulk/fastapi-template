@@ -3,25 +3,42 @@
 * Set .env variable SECRET_KEY. You can generate random string of 32 hex symbols by running (openssl can be found on
   Windows in `C:\Program Files\Git\usr\bin`:
 
-  ```bash
+  ```shell
   openssl rand -hex 32
   ```
 
 * Start the stack with Docker Compose:
 
-  ```bash
+  ```shell
   docker-compose up -d
   ```
 
 * And for the further use (build after editing):
 
-  ```bash
+  ```shell
   docker-compose up -d --build
+  ```
+
+* Or you can use CLI-script by running:
+
+  ```shell
+  pip install -r ./cli/requirements.txt
+  ```
+  
+* Next, on Unix:
+  ```shell
+  chmod +x cli.py
+  ./cli.py up
+  ```
+  
+  Windows:
+  ```shell
+  python cli.py up
   ```
 
 * After building there will remain old unused images, which take space on disk and in images list. To remove them, run:
 
-  ```bash
+  ```shell
   docker image prune
   ```
 
@@ -40,13 +57,13 @@ the database to be ready and configures everything. You can check the logs to mo
 
 To check the logs, run:
 
-```bash
+```shell
 docker-compose logs
 ```
 
 To check the logs of a specific service, add the name of the service, e.g.:
 
-```bash
+```shell
 docker-compose logs backend
 ```
 
@@ -71,7 +88,7 @@ endpoints, and CRUD utils) and update them to your needs.
 
 Check the `api_guide.py` to learn the basics of API of this project
 
-To get inside the container with a `bash` session you can start the stack with:
+To get inside the container with a `shell` session you can start the stack with:
 
 ```console
 $ docker-compose up -d
@@ -80,7 +97,7 @@ $ docker-compose up -d
 and then `exec` inside the running container:
 
 ```console
-$ docker-compose exec app bash
+$ docker-compose exec app shell
 ```
 
 You should see an output like:
