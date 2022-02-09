@@ -1,11 +1,12 @@
 # OAIP backend project
 
-* Set .env variable SECRET_KEY. You can generate random string of 32 hex symbols by running (openssl can be found on
-  Windows in `C:\Program Files\Git\usr\bin`:
+* Set .env variable SECRET_KEY. You can generate random string of 32 hex symbols by running:
 
   ```shell
   openssl rand -hex 32
   ```
+  OpenSSL can be found on Windows in `C:\Program Files\Git\usr\bin`
+
 
 * Start the stack with Docker Compose:
 
@@ -13,33 +14,16 @@
   docker-compose up -d
   ```
 
-* And for the further use (build after editing):
+* And for the further use (rebuild image with code changes):
 
   ```shell
   docker-compose up -d --build
   ```
 
-* Or you can use CLI-script by running:
-
-  ```shell
-  pip install -r ./cli/requirements.txt
-  ```
-  
-* Next, on Unix:
-  ```shell
-  chmod +x cli.py
-  ./cli.py up
-  ```
-  
-  Windows:
-  ```shell
-  python cli.py up
-  ```
-
 * After building there will remain old unused images, which take space on disk and in images list. To remove them, run:
 
   ```shell
-  docker image prune
+  docker image prune --force
   ```
 
 Backend, JSON based web API based on OpenAPI: http://localhost:5555/api/
@@ -67,10 +51,33 @@ To check the logs of a specific service, add the name of the service, e.g.:
 docker-compose logs backend
 ```
 
+## Command Line Interface
+
+You can use CLI-script with references to the most used commands.
+
+* First, install requirements
+
+  ```shell
+  pip install -r ./cli/requirements.txt
+  ```
+  
+* If you are working on Unix, run script as regular Python program or as executable:
+  ```shell
+  python cli.py --help
+  
+  chmod +x cli.py
+  ./cli.py --help
+  ```
+  
+* On Windows, just run program as usual:
+  ```shell
+  python cli.py --help
+  ```
+
 ## Access to pgAdmin
 
 * Open http://localhost:5050 in web browser and login as `admin@oaip.com` with password `qwerty` (you can edit
-  PGADMIN_DEFAULT_EMAIL and PGADMIN_DEFAULT_PASSWORD in .env)
+  PGADMIN_DEFAULT_EMAIL and PGADMIN_DEFAULT_PASSWORD in .env). It may take long after start of the image. 
 * Create new server: in `General` enter any name, go to `Connection` and set next options:
     * Host name/address: `postgres`
     * Port: `5432`
@@ -88,38 +95,108 @@ endpoints, and CRUD utils) and update them to your needs.
 
 Check the `api_guide.py` to learn the basics of API of this project
 
-To get inside the container with a `shell` session you can start the stack with:
+To get inside the container with a `shell` session you can do this via "CLI" button in Docker Desktop.
+
+The other way is run `exec` inside the running container:
 
 ```console
-$ docker-compose up -d
-```
-
-and then `exec` inside the running container:
-
-```console
-$ docker-compose exec app shell
+$ docker-compose exec {container_name} shell
 ```
 
 You should see an output like:
 
-```console
-root@7f2607af31c3:/app#
+```shell
+root@7f2607af31c3:/backend#
 ```
 
-### Persisting Docker named volumes
 
-You need to make sure that each service (Docker container) that uses a volume is always deployed to the same Docker "
-node" in the cluster, that way it will preserve the data. Otherwise, it could be deployed to a different node each time,
-and each time the volume would be created in that new node before starting the service. As a result, it would look like
-your service was starting from scratch every time, losing all the previous data.
+## Deploy to a Docker Swarm mode cluster
 
-That's specially important for a service running a database. But the same problem would apply if you were saving files
-in your main backend service (for example, if those files were uploaded by your users, or if they were created by your
-system).
+There are 3 steps:
 
-To solve that, you can put constraints in the services that use one or more data volumes (like databases) to make them
-be deployed to a Docker node with a specific label. And of course, you need to have that label assigned to one (only
-one) of your nodes.
+1. **Build** your app images
+2. Optionally, **push** your custom images to a Docker Registry
+3. **Deploy** your stack
+
+---
+
+Here are the steps in detail:
+
+1. **Build your app images**
+
+```shell
+python cli.py build --prod
+```
+
+2. **Optionally, push your images to a Docker Registry**
+
+**Note**: if the deployment Docker Swarm mode "cluster" has more than one server, you will have to push the images to a registry or build the images in each server, so that when each of the servers in your cluster tries to start the containers it can get the Docker images for them, pulling them from a Docker Registry or because it has them already built locally.
+
+
+```shell
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml push
+```
+
+3. **Deploy your stack**
+
+* Set these environment variables:
+  * `STACK_NAME=oaip-com`
+
+```shell
+python cli.py deploy
+```
+
+---
+
+#### Deployment Technical Details
+
+Building and pushing is done with the `docker-compose.yml` file, using the `docker-compose` command. The file `docker-compose.yml` uses the file `.env` with default environment variables. And the scripts set some additional environment variables as well.
+
+The deployment requires using `docker stack` instead of `docker-swarm`, and it can't read environment variables or `.env` files. It was the first motivation of creating CLI with API, which provides `.env` support.
+
+You can do the process by hand based on those same scripts if you wanted. The general structure is like this:
+
+```bash
+# Use the environment variables passed to this script, as TAG
+# And re-create those variables as environment variables for the next command
+TAG=${TAG?Variable not set} 
+# The actual command that does the work: "docker-compose" or "docker compose"
+docker-compose \
+# Pass the file that should be used, setting explicitly docker-compose.yml avoids the
+# default of also using docker-compose.override.yml
+-f docker-compose.yml \
+-f docker-compose.prod.yml \
+# Use the docker-compose sub command named "config", it just uses the docker-compose.yml
+# file passed to it and prints their combined contents
+# Put those contents in a file "docker-stack.yml", with ">"
+config > docker-stack.yml
+
+# The previous only generated a docker-stack.yml file,
+# but didn't do anything with it yet
+
+# Now this command uses that same file to deploy it
+docker stack deploy -c docker-stack.yml "${STACK_NAME?Variable not set}"
+```
+
+## Docker Compose files and env vars
+
+There is a main `docker-compose.yml` file with all the configurations that apply to the whole stack, it is used automatically by `docker-compose`.
+
+And there's also a `docker-compose.override.yml` with overrides for development, for example to mount the source code as a volume. It is used automatically by `docker-compose` to apply overrides on top of `docker-compose.yml`. Docker automatically read `docker-compose.override.yml`, if you don't specify config file in command
+
+These Docker Compose files use the `.env` file containing configurations to be injected as environment variables in the containers.
+
+They also use some additional configurations taken from environment variables set in the scripts before calling the `docker-compose` command.
+
+It is all designed to support several "stages", like development, building, testing, and deployment. Also, allowing the deployment to different environments like staging and production (and you can add more environments very easily).
+
+They are designed to have the minimum repetition of code and configurations, so that if you need to change something, you have to change it in the minimum amount of places. That's why files use environment variables that get auto-expanded. That way, if for example, you want to use a different domain, you can call the `docker-compose` command with a different `DOMAIN` environment variable instead of having to change the domain in several places inside the Docker Compose files.
+
+### The .env file
+
+The `.env` file is the one that contains all your configurations, generated keys and passwords, etc.
+
+Depending on your workflow, you could want to exclude it from Git, for example if your project is public. In that case, you would have to make sure to set up a way for your CI tools to obtain it while building or deploying your project.
 
 ### Development URLs
 

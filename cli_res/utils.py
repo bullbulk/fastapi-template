@@ -5,8 +5,12 @@ from appdirs import user_data_dir
 from dotenv import get_key
 from lightdb import LightDB
 
-PROJECT_NAME = get_key(".env", "PROJECT_NAME")
+ENV_PATH = ".env"
+COMPOSE_FILE = "docker-compose.yml"
+COMPOSE_PROD_FILE = "docker-compose.prod.yml"
 CONFIG_FILENAME = "config.json"
+STACK_NAME = get_key(ENV_PATH, "STACK_NAME")
+PROJECT_NAME = get_key(ENV_PATH, "PROJECT_NAME")
 
 
 def get_config_path() -> Path:

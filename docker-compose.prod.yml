@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  backend:
+    image: "${DOCKER_IMAGE_BACKEND}:${TAG-prod}"
+
+
+networks:
+  postgres:
+    driver: overlay
